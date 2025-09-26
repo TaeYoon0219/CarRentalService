@@ -42,6 +42,9 @@ venv.bak/
 *.sqlite
 *.sqlite3
 
+# Exception: Include pre-populated demo database
+!backend/db/carrental.db
+
 # IDE
 .vscode/
 .idea/
