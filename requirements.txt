@@ -1,0 +1,31 @@
+# Car Rental Service - Global Requirements
+# This file contains all Python dependencies needed for the car rental service backend
+
+# Core FastAPI framework and dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# Database and data validation
+pydantic==2.5.0
+sqlite3-utils==3.35.2
+
+# CORS and HTTP utilities
+python-multipart==0.0.6
+
+# Date and time handling
+python-dateutil==2.8.2
+
+# Development and testing dependencies (optional)
+pytest==7.4.3
+pytest-asyncio==0.21.1
+httpx==0.25.2
+
+# Code quality (optional)
+black==23.11.0
+flake8==6.1.0
+
+# Additional utilities
+pathlib2==2.3.7
+typing-extensions==4.8.0
+
+# Note: sqlite3 is included in Python standard library, no additional package needed
