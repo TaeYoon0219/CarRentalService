@@ -9,8 +9,8 @@
 ## How to run
 1. Start a virtual enviorment. I reccomend using uv(python package manager)
    - To download uv: for mac(curl -LsSf https://astral.sh/uv/install.sh | sh), for windows(irm https://astral.sh/uv/install.ps1 | iex)
-   - Run in terminal: uv venv
-   - Run in terminal: source .venv/bin/activate
+   - Run in terminal(This creates a virtual enviorment): uv venv
+   - Run in terminal(this runs the virtual enviorment): source .venv/bin/activate
 2. Download packages: uv pip install -r requirements.txt
 3. For mac run: start.sh
 4. For windows run: start.bat
