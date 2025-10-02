@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './App.css'
+// import '../assets'
 
 // Types based on the backend API
 interface Car {

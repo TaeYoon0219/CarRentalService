@@ -1,4 +1,4 @@
-from backend.db import users
+from carrental.db import users
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
