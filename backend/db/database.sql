@@ -14,7 +14,7 @@ DROP TABLE IF EXISTS users;
 CREATE TABLE users (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   full_name     TEXT NOT NULL,
-  email         TEXT NOT NULL UNIQUE,
+  email         TEXT NOT NULL,
   phone         TEXT,
   password_hash TEXT NOT NULL,
   role          TEXT NOT NULL DEFAULT 'customer', -- 'customer' | 'admin'
