@@ -354,73 +354,77 @@ function App() {
         </div>
       )}
 
-      <main className="main">
-        <div className="cars-header">
-          <h2>Available Cars</h2>
-          <button onClick={loadCars} className="btn-secondary">
-            Refresh
-          </button>
-        </div>
+    <main className="main">
+        <div className="content-layout">
+          <div className="cars-section">
+            <div className="cars-header">
+              <h2>Available Cars</h2>
+              <button onClick={loadCars} className="btn-secondary">
+                Refresh
+              </button>
+            </div>
 
-        {cars.length === 0 ? (
-          <div className="no-cars">
-            No cars available. The database might be empty.
-          </div>
-        ) : (
-          <div className="cars-list">
-            {cars.filter(car => car.status === 'available').map(car => (
-              <div key={car.id} className="car-card">
-                <div className="car-header">
-                  <h3>{car.make} {car.model}</h3>
-                  <span className="car-year">{car.year}</span>
-                </div>
-                <div className="car-details">
-                  <p><strong>Color:</strong> {car.color || 'Not specified'}</p>
-                  <p><strong>Transmission:</strong> {car.transmission}</p>
-                  <p><strong>Seats:</strong> {car.seats}</p>
-                  <p><strong>Doors:</strong> {car.doors}</p>
-                  <div className="car-price">
-                    <strong>{formatPrice(car.daily_rate_cents)}/day</strong>
-                  </div>
-                </div>
-                <div className="car-actions">
-                  {currentUser ? (
-                    <button
-                      onClick={() => {
-                        setSelectedCar(car)
-                        setShowReservationForm(true)
-                      }}
-                      className="btn-primary"
-                    >
-                      Reserve Now
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setShowUserForm(true)}
-                      className="btn-secondary"
-                    >
-                      Login to Reserve
-                    </button>
-                  )}
-                </div>
+            {cars.length === 0 ? (
+              <div className="no-cars">
+                No cars available. The database might be empty.
               </div>
-            ))}
+            ) : (
+              <div className="cars-list">
+                {cars.filter(car => car.status === 'available').map(car => (
+                  <div key={car.id} className="car-card">
+                    <div className="car-header">
+                      <h3>{car.make} {car.model}</h3>
+                      <span className="car-year">{car.year}</span>
+                    </div>
+                    <div className="car-details">
+                      <p><strong>Color:</strong> {car.color || 'Not specified'}</p>
+                      <p><strong>Transmission:</strong> {car.transmission}</p>
+                      <p><strong>Seats:</strong> {car.seats}</p>
+                      <p><strong>Doors:</strong> {car.doors}</p>
+                      <div className="car-price">
+                        <strong>{formatPrice(car.daily_rate_cents)}/day</strong>
+                      </div>
+                    </div>
+                    <div className="car-actions">
+                      {currentUser ? (
+                        <button
+                          onClick={() => {
+                            setSelectedCar(car)
+                            setShowReservationForm(true)
+                          }}
+                          className="btn-primary"
+                        >
+                          Reserve Now
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setShowUserForm(true)}
+                          className="btn-secondary"
+                        >
+                          Login to Reserve
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      <div className="map-section">
-        <h2>Rental Location</h2>
-        <div className="map-container">
-          <iframe
-            src="https://www.openstreetmap.org/export/embed.html?bbox=-76.1180%2C43.1080%2C-76.0980%2C43.1280&marker=43.1180%2C-76.1080"
-            style={{ width: '100%', height: '100%', border: 'none', borderRadius: '8px' }}
-            title="Rental Location Map"
-          />
-        </div>
-        <div className="location-info">
-          <h3> Syracuse Hancock International Airport</h3>
-        </div>
-      </div>
 
+          <div className="map-section">
+            <h2>Rental Locations</h2>
+            <div className="map-container">
+              <iframe
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-76.1180%2C43.1080%2C-76.0980%2C43.1280&marker=43.1180%2C-76.1080"
+                style={{ width: '100%', height: '100%', border: 'none', borderRadius: '8px' }}
+                title="Rental Location Map"
+              />
+            </div>
+            <div className="location-info">
+              <h3>📍 Syracuse Hancock International Airport</h3>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   )

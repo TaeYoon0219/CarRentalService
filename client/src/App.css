@@ -341,7 +341,6 @@
   background-color: #e0e0e0 !important;
 }
 
-<<<<<<< HEAD
 .content-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -379,7 +378,7 @@
   margin: 1rem 0;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 .location-info {
@@ -387,17 +386,18 @@
   padding: 1.5rem;
   border-radius: 8px;
   margin-top: 1rem;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .location-info h3 {
-  margin: 0 0 0 0,5rem 0;
+  margin: 0 0 0 0.5rem 0;
   font-size: 1.2rem;
+  color: #2c2c2c;
 }
 
 .location-info p {
   margin: 0.5rem 0;
   line-height: 1.6;
+  color: #6c757d;
 }
-=======
-.field-label { display: block; font-weight: 600; margin: 6px 0 4px; }
->>>>>>> 28626fa5db4274741d3f2c62388b2694f005644f
