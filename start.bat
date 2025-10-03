@@ -53,10 +53,13 @@ echo 📦 Setting up backend...
 cd /d "%BACKEND_DIR%"
 
 if exist "requirements.txt" (
-    echo Installing Python dependencies...
+    echo Installing Python dependencies from backend/requirements.txt...
     pip install -r requirements.txt --quiet
+) else if exist "..\requirements.txt" (
+    echo Installing Python dependencies from root requirements.txt...
+    pip install -r ..\requirements.txt --quiet
 ) else (
-    echo ⚠️ No requirements.txt found in backend directory
+    echo ⚠️ No requirements.txt found in backend directory or root
 )
 
 REM Install frontend dependencies if needed
