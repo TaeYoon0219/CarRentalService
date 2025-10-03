@@ -313,3 +313,33 @@
     padding: 0.5rem;
   }
 }
+
+/* Primary button = dark background, white text (always visible) */
+.btn-primary {
+  background-color: #111 !important;   /* solid dark background */
+  color: #fff !important;              /* white text */
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.btn-primary:hover {
+  background-color: #222 !important;   /* slightly lighter on hover */
+}
+
+/* Secondary button = light gray background, dark text */
+.btn-secondary {
+  background-color: #f1f1f1 !important;
+  color: #111 !important;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.btn-secondary:hover {
+  background-color: #e0e0e0 !important;
+}

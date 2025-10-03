@@ -173,42 +173,52 @@ function App() {
         </div>
       )}
 
-      {showUserForm && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Create Account</h2>
-            <form onSubmit={handleCreateUser}>
-              <input
-                type="text"
-                placeholder="Full Name"
-                value={userForm.full_name}
-                onChange={(e) => setUserForm({...userForm, full_name: e.target.value})}
-                required
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                value={userForm.email}
-                onChange={(e) => setUserForm({...userForm, email: e.target.value})}
-                required
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                value={userForm.password_hash}
-                onChange={(e) => setUserForm({...userForm, password_hash: e.target.value})}
-                required
-              />
-              <div className="modal-buttons">
-                <button type="submit" className="btn-primary">Create Account</button>
-                <button type="button" onClick={() => setShowUserForm(false)} className="btn-secondary">
-                  Cancel
-                </button>
-              </div>
-            </form>
+  {showUserForm && (
+    <div className="modal">
+      <div className="modal-content">
+        <h2>Create Account</h2>
+
+        <form onSubmit={handleCreateUser}>
+          <input
+            type="text"
+            placeholder="Full Name"
+            value={userForm.full_name}
+            onChange={(e) => setUserForm({ ...userForm, full_name: e.target.value })}
+            required
+          />
+
+          <input
+            type="email"
+            placeholder="Email"
+            value={userForm.email}
+            onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
+            required
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            value={userForm.password_hash}
+            onChange={(e) => setUserForm({ ...userForm, password_hash: e.target.value })}
+            required
+          />
+
+          {/* <-- Add THIS button row inside the form */}
+          <div className="modal-buttons">
+            <button type="submit" className="btn-primary">Create Account</button>
+            <button
+              type="button"
+              onClick={() => setShowUserForm(false)}
+              className="btn-secondary"
+            >
+              Cancel
+            </button>
           </div>
-        </div>
-      )}
+        </form>
+      </div>
+    </div>
+  )}
+
 
       {showReservationForm && selectedCar && (
         <div className="modal">
