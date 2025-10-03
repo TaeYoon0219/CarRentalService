@@ -1,12 +1,24 @@
 // loads express library which makes building web servers easy 
 // - takes requests and brings back responses
-const express = require("express");
+const express = require('express');
+const path = require('path');
+// creates an instance of the express app (server). now requests can come in
+const app = express();
+
+// ... your existing middleware ...
+
+// Serve static files from uploads folder
+// This allows images to be accessed via URL
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// Import and use image routes
+const imageRoutes = require('./routes/images');
+app.use('/api/images', imageRoutes);
+
 
 // imports db object from db.js file. without it, it wouldn't know how to run sql commands
 const db = require("../db/database"); // <- import connector
 
-// creates an instance of the express app (server). now requests can come in
-const app = express();
 
 // tells express to turn json data sent by client into usable javascript object
 app.use(express.json());

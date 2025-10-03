@@ -228,3 +228,6 @@ INSERT INTO car_features (car_id, feature_id) VALUES
   ((SELECT id FROM cars WHERE vin='LRWYGCEK0PC123456'), (SELECT id FROM features WHERE key='navigation')),
   ((SELECT id FROM cars WHERE vin='LRWYGCEK0PC123456'), (SELECT id FROM features WHERE key='keyless_entry')),
   ((SELECT id FROM cars WHERE vin='LRWYGCEK0PC123456'), (SELECT id FROM features WHERE key='usb_c'));
+
+
+ALTER TABLE Car ADD COLUMN image_url VARCHAR(500);
