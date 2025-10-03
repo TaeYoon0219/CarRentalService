@@ -3,6 +3,7 @@
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles  # ADD THIS LINE
 from pydantic import BaseModel
 import sqlite3
 import os
@@ -20,6 +21,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ADD THIS LINE - Serve static files (images) from uploads directory
+app.mount("/uploads", StaticFiles(directory=str(Path(__file__).parent.parent / "uploads")), name="uploads")
 
 # Database path - same location as the Node.js version
 DB_PATH = Path(__file__).parent.parent / "db" / "carrental.db"

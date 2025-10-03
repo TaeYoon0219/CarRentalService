@@ -5,8 +5,6 @@ const path = require('path');
 // creates an instance of the express app (server). now requests can come in
 const app = express();
 
-// ... your existing middleware ...
-
 // Serve static files from uploads folder
 // This allows images to be accessed via URL
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));

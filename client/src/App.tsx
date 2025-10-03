@@ -15,6 +15,7 @@ interface Car {
   color: string
   daily_rate_cents: number
   status: string
+  image_url: string  
 }
 
 interface User {
@@ -372,6 +373,16 @@ function App() {
               <div className="cars-list">
                 {cars.filter(car => car.status === 'available').map(car => (
                   <div key={car.id} className="car-card">
+                    <div className="car-image">
+                      <img 
+                        src={car.image_url ? `http://localhost:3001${car.image_url}` : '/placeholder-car.jpg'}
+                        alt={`${car.make} ${car.model}`}
+                        onError={(e) => {
+                          e.currentTarget.src = 'https://placehold.co/400x300/png?text=No+Image'
+                        }}
+                      />
+                    </div>
+                  
                     <div className="car-header">
                       <h3>{car.make} {car.model}</h3>
                       <span className="car-year">{car.year}</span>
