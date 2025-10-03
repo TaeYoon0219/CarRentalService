@@ -151,7 +151,7 @@ function App() {
   return (
     <div className="app">
       <header className="header">
-        <h1>Car Rental Service Halo</h1>
+        <h1>Halo Car Rental</h1>
         {currentUser ? (
           <div className="user-info">
             Welcome, {currentUser.full_name}!
@@ -264,7 +264,7 @@ function App() {
             No cars available. The database might be empty.
           </div>
         ) : (
-          <div className="cars-grid">
+          <div className="cars-list">
             {cars.filter(car => car.status === 'available').map(car => (
               <div key={car.id} className="car-card">
                 <div className="car-header">
@@ -304,6 +304,20 @@ function App() {
             ))}
           </div>
         )}
+      <div className="map-section">
+        <h2>Rental Location</h2>
+        <div className="map-container">
+          <iframe
+            src="https://www.openstreetmap.org/export/embed.html?bbox=-76.1180%2C43.1080%2C-76.0980%2C43.1280&marker=43.1180%2C-76.1080"
+            style={{ width: '100%', height: '100%', border: 'none', borderRadius: '8px' }}
+            title="Rental Location Map"
+          />
+        </div>
+        <div className="location-info">
+          <h3> Syracuse Hancock International Airport</h3>
+        </div>
+      </div>
+
       </main>
     </div>
   )
