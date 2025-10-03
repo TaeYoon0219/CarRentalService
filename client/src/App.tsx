@@ -36,6 +36,8 @@ interface NewReservation {
   end_datetime: string
 }
 
+
+
 // API configuration
 const API_BASE_URL = 'http://localhost:3001'
 
@@ -149,7 +151,7 @@ function App() {
   return (
     <div className="app">
       <header className="header">
-        <h1>Car Rental Service</h1>
+        <h1>Car Rental Service Halo</h1>
         {currentUser ? (
           <div className="user-info">
             Welcome, {currentUser.full_name}!

@@ -50,16 +50,16 @@ def seed_database():
     
     # Seed Cars - 10 diverse vehicles
     cars_data = [
-        ('1HGBH41JXMN109186', 'Toyota', 'Camry', 2023, 'Automatic', 5, 4, 'White', 4500, 'available'),
-        ('JHMCM82633C004352', 'Honda', 'Civic', 2022, 'Manual', 5, 4, 'Blue', 3800, 'available'),
-        ('1C3CCBCB6DN121234', 'BMW', 'X5', 2023, 'Automatic', 7, 4, 'Black', 8900, 'available'),
-        ('WAUAFAFL5CN009234', 'Audi', 'A4', 2022, 'Automatic', 5, 4, 'Silver', 6200, 'available'),
-        ('1FTFW1ET5DFC10312', 'Ford', 'F-150', 2023, 'Automatic', 6, 4, 'Red', 7500, 'available'),
-        ('JM1BK32F281780234', 'Mazda', 'CX-5', 2022, 'Automatic', 5, 4, 'Gray', 5100, 'available'),
-        ('1G1BE5SM3H7123456', 'Chevrolet', 'Malibu', 2021, 'Automatic', 5, 4, 'White', 3900, 'available'),
-        ('KNDJP3A59H7654321', 'Kia', 'Sorento', 2023, 'Automatic', 7, 4, 'Green', 5800, 'maintenance'),
-        ('1N4AL3AP8JC987654', 'Nissan', 'Altima', 2022, 'Automatic', 5, 4, 'Blue', 4200, 'available'),
-        ('2T1BURHE0JC111222', 'Tesla', 'Model 3', 2023, 'Automatic', 5, 4, 'Black', 7200, 'available')
+        ('1', '1HGBH41JXMN109186', 'Toyota', 'Camry', 2023, 'Automatic', 5, 4, 'White', 4500, 'available'),
+        ('2', 'JHMCM82633C004352', 'Honda', 'Civic', 2022, 'Manual', 5, 4, 'Blue', 3800, 'available'),
+        ('3', '1C3CCBCB6DN121234', 'BMW', 'X5', 2023, 'Automatic', 7, 4, 'Black', 8900, 'available'),
+        ('4', 'WAUAFAFL5CN009234', 'Audi', 'A4', 2022, 'Automatic', 5, 4, 'Silver', 6200, 'available'),
+        ('5', '1FTFW1ET5DFC10312', 'Ford', 'F-150', 2023, 'Automatic', 6, 4, 'Red', 7500, 'available'),
+        ('6', 'JM1BK32F281780234', 'Mazda', 'CX-5', 2022, 'Automatic', 5, 4, 'Gray', 5100, 'available'),
+        ('7', '1G1BE5SM3H7123456', 'Chevrolet', 'Malibu', 2021, 'Automatic', 5, 4, 'White', 3900, 'available'),
+        ('8', 'KNDJP3A59H7654321', 'Kia', 'Sorento', 2023, 'Automatic', 7, 4, 'Green', 5800, 'maintenance'),
+        ('9', '1N4AL3AP8JC987654', 'Nissan', 'Altima', 2022, 'Automatic', 5, 4, 'Blue', 4200, 'available'),
+        ('10', '2T1BURHE0JC111222', 'Tesla', 'Model 3', 2023, 'Automatic', 5, 4, 'Black', 7200, 'available')
     ]
     
     cursor.executemany(
