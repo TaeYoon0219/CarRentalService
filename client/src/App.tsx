@@ -49,7 +49,7 @@ const api = {
     return response.json()
   },
 
-  async createUser(user: NewUser): Promise<User> {
+  /*async createUser(user: NewUser): Promise<User> {
     const response = await fetch(`${API_BASE_URL}/api/users`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -57,9 +57,33 @@ const api = {
     })
     if (!response.ok) throw new Error('Failed to create user')
     return response.json()
+  }, */
+  async createUser(user: NewUser): Promise<User> {
+    const response = await fetch(`${API_BASE_URL}/api/users`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        full_name: user.full_name,
+        email: user.email,
+        password_hash: user.password_hash,
+      }),
+    });
+  
+    if (!response.ok) {
+      let msg = `Failed to create user (HTTP ${response.status})`;
+      try {
+        const data = await response.json();
+        if (typeof data?.detail === 'string') msg = data.detail;
+        else if (Array.isArray(data?.detail)) msg = data.detail.map((d: any) => d.msg || d.loc?.join('.') ).join('; ');
+        else msg = JSON.stringify(data);
+      } catch {}
+      throw new Error(msg);
+    }
+    return response.json();
   },
+  
 
-  async createReservation(reservation: NewReservation): Promise<{ id: number }> {
+  /*async createReservation(reservation: NewReservation): Promise<{ id: number }> {
     const response = await fetch(`${API_BASE_URL}/api/reservations`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -67,7 +91,26 @@ const api = {
     })
     if (!response.ok) throw new Error('Failed to create reservation')
     return response.json()
+  }*/
+  async createReservation(reservation: NewReservation): Promise<{ id: number }> {
+    const response = await fetch(`${API_BASE_URL}/api/reservations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(reservation)
+    })
+    if (!response.ok) {
+      let msg = `Failed to create reservation (HTTP ${response.status})`
+      try {
+        const data = await response.json()
+        if (typeof data?.detail === 'string') msg = data.detail
+        else if (Array.isArray(data?.detail)) msg = data.detail.map((d: any) => d.msg || d.loc?.join('.')).join('; ')
+        else msg = JSON.stringify(data)
+      } catch {}
+      throw new Error(msg)
+    }
+    return response.json()
   }
+    
 }
 
 function App() {
@@ -120,7 +163,7 @@ function App() {
     }
   }
 
-  const handleCreateReservation = async (e: React.FormEvent) => {
+  /*const handleCreateReservation = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!currentUser || !selectedCar) return
 
@@ -138,7 +181,53 @@ function App() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create reservation')
     }
+  }*/
+
+  const handleCreateReservation = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!currentUser || !selectedCar) return
+    
+    // helper: ensure ISO-ish string for FastAPI (YYYY-MM-DDTHH:MM:SS)
+    const toIsoForApi = (s: string) => {
+      // If it's a datetime-local like "2025-10-03T13:10", append seconds.
+      if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) return `${s}:00`
+      // If it's a locale string like "10/03/2025, 01:10 PM", parse then format.
+      const d = new Date(s)
+      const pad = (n: number) => String(n).padStart(2, '0')
+      const y = d.getFullYear()
+      const m = pad(d.getMonth() + 1)
+      const day = pad(d.getDate())
+      const hh = pad(d.getHours())
+      const mm = pad(d.getMinutes())
+      const ss = pad(d.getSeconds())
+      return `${y}-${m}-${day}T${hh}:${mm}:${ss}`
+    }
+    
+    const startISO = toIsoForApi(reservationForm.start_datetime)
+    const endISO   = toIsoForApi(reservationForm.end_datetime)
+    
+    // client-side check: end must be after start
+    if (new Date(endISO) <= new Date(startISO)) {
+      setError('End date/time must be after start date/time.')
+      return
+    }
+    
+    try {
+      await api.createReservation({
+        user_id: currentUser.id,
+        car_id: selectedCar.id,
+        start_datetime: startISO,
+        end_datetime: endISO
+      })
+      alert('Reservation created successfully!')
+      setShowReservationForm(false)
+      setSelectedCar(null)
+      setReservationForm({ start_datetime: '', end_datetime: '' })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create reservation')
+    }
   }
+    
 
   const formatPrice = (cents: number) => {
     return `$${(cents / 100).toFixed(2)}`
@@ -226,27 +315,41 @@ function App() {
             <h2>Reserve {selectedCar.make} {selectedCar.model}</h2>
             <p>Daily Rate: {formatPrice(selectedCar.daily_rate_cents)}</p>
             <form onSubmit={handleCreateReservation}>
-              <input
-                type="datetime-local"
-                placeholder="Start Date & Time"
-                value={reservationForm.start_datetime}
-                onChange={(e) => setReservationForm({...reservationForm, start_datetime: e.target.value})}
+              <label htmlFor="start_dt" className="field-label">Start Date & Time</label>
+                <input
+                  id="start_dt"
+                  type="datetime-local"
+                  placeholder="Start Date & Time"
+                  value={reservationForm.start_datetime}
+                  onChange={(e) =>
+                    setReservationForm({ ...reservationForm, start_datetime: e.target.value })
+                  }
                 required
               />
-              <input
-                type="datetime-local"
-                placeholder="End Date & Time"
-                value={reservationForm.end_datetime}
-                onChange={(e) => setReservationForm({...reservationForm, end_datetime: e.target.value})}
+
+              <label htmlFor="end_dt" className="field-label">End Date & Time</label>
+                <input
+                  id="end_dt"
+                    type="datetime-local"
+                    placeholder="End Date & Time"
+                    value={reservationForm.end_datetime}
+                    onChange={(e) =>
+                      setReservationForm({ ...reservationForm, end_datetime: e.target.value })
+                    }
                 required
               />
-              <div className="modal-buttons">
-                <button type="submit" className="btn-primary">Create Reservation</button>
-                <button type="button" onClick={() => setShowReservationForm(false)} className="btn-secondary">
-                  Cancel
-                </button>
-              </div>
-            </form>
+
+            <div className="modal-buttons">
+              <button type="submit" className="btn-primary">Create Reservation</button>
+              <button
+                type="button"
+                onClick={() => setShowReservationForm(false)}
+                className="btn-secondary"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
           </div>
         </div>
       )}

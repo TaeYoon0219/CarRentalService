@@ -312,36 +312,36 @@
   }
 }
 
-/* Primary button = dark background, white text (always visible) */
-.btn-primary {
-  background-color: #111 !important;   /* solid dark background */
-  color: #fff !important;              /* white text */
-  border: none;
-  border-radius: 10px;
-  padding: 10px 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s ease;
+/* --- Modal button styles (forced) --- */
+.modal .btn-primary, .btn-primary {
+  background-color: #111 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 10px !important;
+  padding: 10px 14px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: background 0.2s ease !important;
 }
-.btn-primary:hover {
-  background-color: #222 !important;   /* slightly lighter on hover */
+.modal .btn-primary:hover, .btn-primary:hover {
+  background-color: #222 !important;
 }
 
-/* Secondary button = light gray background, dark text */
-.btn-secondary {
+.modal .btn-secondary, .btn-secondary {
   background-color: #f1f1f1 !important;
   color: #111 !important;
-  border: none;
-  border-radius: 10px;
-  padding: 10px 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s ease;
+  border: none !important;
+  border-radius: 10px !important;
+  padding: 10px 14px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: background 0.2s ease !important;
 }
-.btn-secondary:hover {
+.modal .btn-secondary:hover, .btn-secondary:hover {
   background-color: #e0e0e0 !important;
 }
 
+<<<<<<< HEAD
 .content-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -398,3 +398,6 @@
   margin: 0.5rem 0;
   line-height: 1.6;
 }
+=======
+.field-label { display: block; font-weight: 600; margin: 6px 0 4px; }
+>>>>>>> 28626fa5db4274741d3f2c62388b2694f005644f
