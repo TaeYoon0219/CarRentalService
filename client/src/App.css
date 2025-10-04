@@ -9,6 +9,11 @@
 }
 
 .header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(10px);
   padding: 1rem 2rem;
@@ -39,9 +44,11 @@
 .main {
   flex: 1;
   padding: 2rem;
+  padding-top: 6rem;
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
+  background: #f5f5f5;
 }
 
 .cars-header {
@@ -410,4 +417,10 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #f5f5f5;
 }
