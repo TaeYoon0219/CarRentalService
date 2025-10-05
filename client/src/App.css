@@ -301,6 +301,58 @@
   margin-top: 1rem;
 }
 
+/* Reservation Modal Specific Styles */
+.reservation-modal {
+  max-width: 600px !important;
+}
+
+.reservation-modal .daily-rate {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #4f46e5;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.selected-dates-summary {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f0f9ff;
+  border-radius: 10px;
+  border: 2px solid #bfdbfe;
+}
+
+.selected-dates-summary h3 {
+  margin: 0 0 0.8rem 0;
+  font-size: 1rem;
+  color: #1e40af;
+}
+
+.selected-dates-summary p {
+  margin: 0.5rem 0;
+  color: #1e3a8a;
+  font-size: 0.95rem;
+}
+
+.selected-dates-summary .total-days {
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+  border-top: 2px solid #bfdbfe;
+  font-weight: 700;
+  color: #1e40af;
+  font-size: 1.05rem;
+}
+
+.btn-primary:disabled {
+  background: #cbd5e1 !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+}
+
+.btn-primary:disabled:hover {
+  background: #cbd5e1 !important;
+}
+
 /* Responsive Design */
 @media (max-width: 968px) {
   .content-layout {

@@ -3,6 +3,7 @@ import './App.css'
 import MyRentals from './MyRentals'
 import Payment from './Payment'
 import PickupInstructions from './PickupInstructions'
+import CarCalendar from './CarCalendar'
 // import '../assets'
 
 // Types based on the backend API
@@ -455,45 +456,65 @@ function App() {
 
       {showReservationForm && selectedCar && (
         <div className="modal">
-          <div className="modal-content">
+          <div className="modal-content reservation-modal">
             <h2>Reserve {selectedCar.make} {selectedCar.model}</h2>
-            <p>Daily Rate: {formatPrice(selectedCar.daily_rate_cents)}</p>
+            <p className="daily-rate">Daily Rate: {formatPrice(selectedCar.daily_rate_cents)}</p>
+            
+            <CarCalendar
+              carId={selectedCar.id}
+              selectedStartDate={reservationForm.start_datetime}
+              selectedEndDate={reservationForm.end_datetime}
+              onDateSelect={(start, end) => {
+                setReservationForm({ start_datetime: start, end_datetime: end })
+              }}
+            />
+
+            {reservationForm.start_datetime && reservationForm.end_datetime && (
+              <div className="selected-dates-summary">
+                <h3>Selected Dates</h3>
+                <p>
+                  <strong>Pickup:</strong> {new Date(reservationForm.start_datetime).toLocaleDateString('en-US', { 
+                    weekday: 'short', 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                  })}
+                </p>
+                <p>
+                  <strong>Return:</strong> {new Date(reservationForm.end_datetime).toLocaleDateString('en-US', { 
+                    weekday: 'short', 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                  })}
+                </p>
+                <p className="total-days">
+                  Total: {Math.ceil((new Date(reservationForm.end_datetime).getTime() - new Date(reservationForm.start_datetime).getTime()) / (1000 * 60 * 60 * 24))} days
+                </p>
+              </div>
+            )}
+
             <form onSubmit={handleCreateReservation}>
-              <label htmlFor="start_dt" className="field-label">Start Date & Time</label>
-                <input
-                  id="start_dt"
-                  type="datetime-local"
-                  placeholder="Start Date & Time"
-                  value={reservationForm.start_datetime}
-                  onChange={(e) =>
-                    setReservationForm({ ...reservationForm, start_datetime: e.target.value })
-                  }
-                required
-              />
-
-              <label htmlFor="end_dt" className="field-label">End Date & Time</label>
-                <input
-                  id="end_dt"
-                    type="datetime-local"
-                    placeholder="End Date & Time"
-                    value={reservationForm.end_datetime}
-                    onChange={(e) =>
-                      setReservationForm({ ...reservationForm, end_datetime: e.target.value })
-                    }
-                required
-              />
-
-            <div className="modal-buttons">
-              <button type="submit" className="btn-primary">Create Reservation</button>
-              <button
-                type="button"
-                onClick={() => setShowReservationForm(false)}
-                className="btn-secondary"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+              <div className="modal-buttons">
+                <button 
+                  type="submit" 
+                  className="btn-primary"
+                  disabled={!reservationForm.start_datetime || !reservationForm.end_datetime}
+                >
+                  Continue to Payment
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowReservationForm(false)
+                    setReservationForm({ start_datetime: '', end_datetime: '' })
+                  }}
+                  className="btn-secondary"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
