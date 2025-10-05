@@ -555,8 +555,15 @@ function App() {
                     <div className="car-details">
                       <p><strong>Color:</strong> {car.color || 'Not specified'}</p>
                       <p><strong>Transmission:</strong> {car.transmission}</p>
-                      <p><strong>Seats:</strong> {car.seats}</p>
-                      <p><strong>Doors:</strong> {car.doors}</p>
+                      
+                      <div className="car-features-section">
+                        <p className="features-title"><strong>Features:</strong></p>
+                        <ul className="features-list">
+                          <li>{car.seats} Seats</li>
+                          <li>{car.doors} Doors</li>
+                        </ul>
+                      </div>
+
                       <div className="car-price">
                         <strong>{formatPrice(car.daily_rate_cents)}/day</strong>
                       </div>
