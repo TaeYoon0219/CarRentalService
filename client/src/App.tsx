@@ -553,6 +553,22 @@ function App() {
     <main className="main">
       {currentPage === 'home' ? (
         <div className="content-layout">
+          <div className="map-section">
+            <h2>Rental Locations</h2>
+            <div className="map-container">
+              <iframe
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-76.1180%2C43.1080%2C-76.0980%2C43.1280&marker=43.1180%2C-76.1080"
+                style={{ width: '100%', height: '100%', border: 'none', borderRadius: '8px' }}
+                title="Rental Location Map"
+              />
+            </div>
+            <div className="location-info">
+              <h3>Syracuse Hancock International Airport</h3>
+              <p>1000 Col Eileen Collins Blvd</p>
+              <p>Syracuse, NY 13212</p>
+            </div>
+          </div>
+
           <div className="cars-section">
             <div className="cars-header">
               <h2>Available Cars</h2>
@@ -644,20 +660,6 @@ function App() {
                 ))}
               </div>
             )}
-          </div>
-
-          <div className="map-section">
-            <h2>Rental Locations</h2>
-            <div className="map-container">
-              <iframe
-                src="https://www.openstreetmap.org/export/embed.html?bbox=-76.1180%2C43.1080%2C-76.0980%2C43.1280&marker=43.1180%2C-76.1080"
-                style={{ width: '100%', height: '100%', border: 'none', borderRadius: '8px' }}
-                title="Rental Location Map"
-              />
-            </div>
-            <div className="location-info">
-              <h3>Syracuse Hancock International Airport</h3>
-            </div>
           </div>
         </div>
       ) : (
