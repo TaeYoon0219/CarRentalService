@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import MyRentals from './MyRentals'
+import Payment from './Payment'
 // import '../assets'
 
 // Types based on the backend API
@@ -150,6 +151,11 @@ function App() {
   const [showReservationForm, setShowReservationForm] = useState(false)
   const [currentPage, setCurrentPage] = useState<'home' | 'rentals'>('home')
   const [isSignUpMode, setIsSignUpMode] = useState(false)
+  const [showPayment, setShowPayment] = useState(false)
+  const [pendingReservation, setPendingReservation] = useState<{
+    id: number
+    totalAmount: number
+  } | null>(null)
 
   // Form states
   const [userForm, setUserForm] = useState({
@@ -259,19 +265,43 @@ function App() {
     }
     
     try {
-      await api.createReservation({
+      const result = await api.createReservation({
         user_id: currentUser.id,
         car_id: selectedCar.id,
         start_datetime: startISO,
         end_datetime: endISO
       })
-      alert('Reservation created successfully!')
+      
+      // Calculate total amount
+      const days = Math.ceil((new Date(endISO).getTime() - new Date(startISO).getTime()) / (1000 * 60 * 60 * 24))
+      const totalAmount = selectedCar.daily_rate_cents * days
+      
+      // Store reservation details and show payment page
+      setPendingReservation({
+        id: result.id,
+        totalAmount: totalAmount
+      })
       setShowReservationForm(false)
-      setSelectedCar(null)
-      setReservationForm({ start_datetime: '', end_datetime: '' })
+      setShowPayment(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create reservation')
     }
+  }
+
+  const handlePaymentSuccess = () => {
+    setShowPayment(false)
+    setPendingReservation(null)
+    setSelectedCar(null)
+    setReservationForm({ start_datetime: '', end_datetime: '' })
+    alert('Payment successful! Your reservation is confirmed.')
+    setCurrentPage('rentals')
+  }
+
+  const handlePaymentCancel = () => {
+    setShowPayment(false)
+    setPendingReservation(null)
+    setSelectedCar(null)
+    setReservationForm({ start_datetime: '', end_datetime: '' })
   }
     
 
@@ -518,7 +548,7 @@ function App() {
               />
             </div>
             <div className="location-info">
-              <h3>📍 Syracuse Hancock International Airport</h3>
+              <h3>Syracuse Hancock International Airport</h3>
             </div>
           </div>
         </div>
@@ -526,8 +556,27 @@ function App() {
         <MyRentals currentUser={currentUser} />
       )}
       </main>
+
+      {showPayment && pendingReservation && selectedCar && (
+        <Payment
+          reservationId={pendingReservation.id}
+          totalAmount={pendingReservation.totalAmount}
+          carInfo={{
+            make: selectedCar.make,
+            model: selectedCar.model,
+            year: selectedCar.year,
+          }}
+          rentalDates={{
+            start: reservationForm.start_datetime,
+            end: reservationForm.end_datetime,
+          }}
+          onPaymentSuccess={handlePaymentSuccess}
+          onCancel={handlePaymentCancel}
+        />
+      )}
     </div>
   )
 }
 
 export default App
+

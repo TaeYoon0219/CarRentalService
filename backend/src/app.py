@@ -77,6 +77,19 @@ class UserLogin(BaseModel):
     email: str
     password_hash: str
 
+class PaymentCreate(BaseModel):
+    reservation_id: int
+    amount_cents: int
+    card_number: str
+    card_holder: str
+    expiry_date: str
+    cvv: str
+
+class PaymentResponse(BaseModel):
+    id: int
+    reservation_id: int
+    status: str
+
 # Root endpoint
 @app.get("/")
 async def root():
@@ -190,6 +203,52 @@ async def create_reservation(reservation: ReservationCreate):
         
         return ReservationResponse(id=reservation_id)
         
+    except sqlite3.Error as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+# POST /api/payments - Process payment for a reservation
+@app.post("/api/payments", response_model=PaymentResponse)
+async def create_payment(payment: PaymentCreate):
+    """Process payment for a reservation"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Check if reservation exists
+        cursor.execute("SELECT id, status FROM reservations WHERE id = ?", (payment.reservation_id,))
+        reservation = cursor.fetchone()
+        
+        if not reservation:
+            conn.close()
+            raise HTTPException(status_code=404, detail="Reservation not found")
+        
+        # No validation - accept any dummy card numbers
+        # In production, you would validate with a payment processor (Stripe, PayPal, etc.)
+        
+        # Store card info as-is (for demo purposes)
+        masked_card = payment.card_number
+        
+        cursor.execute("""
+            INSERT INTO payments (reservation_id, amount_cents, currency, provider, provider_ref, status)
+            VALUES (?, ?, 'USD', 'test', ?, 'paid')
+        """, (
+            payment.reservation_id,
+            payment.amount_cents,
+            masked_card
+        ))
+        
+        payment_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        
+        return PaymentResponse(
+            id=payment_id,
+            reservation_id=payment.reservation_id,
+            status='paid'
+        )
+        
+    except HTTPException:
+        raise
     except sqlite3.Error as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
