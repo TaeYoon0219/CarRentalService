@@ -168,6 +168,7 @@ function App() {
     model: string
     year: number
   } | null>(null)
+  const [sortBy, setSortBy] = useState<string>('name-asc')
 
   // Form states
   const [userForm, setUserForm] = useState({
@@ -337,6 +338,35 @@ function App() {
 
   const formatPrice = (cents: number) => {
     return `$${(cents / 100).toFixed(2)}`
+  }
+
+  const sortCars = (carsToSort: Car[]) => {
+    const sorted = [...carsToSort]
+    
+    switch (sortBy) {
+      case 'price-asc':
+        return sorted.sort((a, b) => a.daily_rate_cents - b.daily_rate_cents)
+      case 'price-desc':
+        return sorted.sort((a, b) => b.daily_rate_cents - a.daily_rate_cents)
+      case 'year-desc':
+        return sorted.sort((a, b) => b.year - a.year)
+      case 'year-asc':
+        return sorted.sort((a, b) => a.year - b.year)
+      case 'name-asc':
+        return sorted.sort((a, b) => {
+          const nameA = `${a.make} ${a.model}`.toLowerCase()
+          const nameB = `${b.make} ${b.model}`.toLowerCase()
+          return nameA.localeCompare(nameB)
+        })
+      case 'name-desc':
+        return sorted.sort((a, b) => {
+          const nameA = `${a.make} ${a.model}`.toLowerCase()
+          const nameB = `${b.make} ${b.model}`.toLowerCase()
+          return nameB.localeCompare(nameA)
+        })
+      default:
+        return sorted
+    }
   }
 
   if (loading) {
@@ -526,9 +556,27 @@ function App() {
           <div className="cars-section">
             <div className="cars-header">
               <h2>Available Cars</h2>
-              <button onClick={loadCars} className="btn-secondary">
-                Refresh
-              </button>
+              <div className="cars-header-controls">
+                <div className="sort-control">
+                  <label htmlFor="sort-select">Sort by:</label>
+                  <select 
+                    id="sort-select"
+                    value={sortBy} 
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="sort-select"
+                  >
+                    <option value="name-asc">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                    <option value="price-asc">Price (Low to High)</option>
+                    <option value="price-desc">Price (High to Low)</option>
+                    <option value="year-desc">Year (Newest First)</option>
+                    <option value="year-asc">Year (Oldest First)</option>
+                  </select>
+                </div>
+                <button onClick={loadCars} className="btn-secondary">
+                  Refresh
+                </button>
+              </div>
             </div>
 
             {cars.length === 0 ? (
@@ -537,7 +585,7 @@ function App() {
               </div>
             ) : (
               <div className="cars-list">
-                {cars.filter(car => car.status === 'available').map(car => (
+                {sortCars(cars.filter(car => car.status === 'available')).map(car => (
                   <div key={car.id} className="car-card">
                     <div className="car-image">
                       <img 
