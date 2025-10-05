@@ -103,6 +103,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  gap: 2rem;
 }
 
 .cars-header h2 {
@@ -110,12 +111,15 @@
   margin: 0;
   font-size: 2rem;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .cars-header-controls {
   display: flex;
   gap: 1rem;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .sort-control {
