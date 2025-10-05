@@ -69,6 +69,14 @@ class ReservationCreate(BaseModel):
 class ReservationResponse(BaseModel):
     id: int
 
+class ReservationUpdate(BaseModel):
+    start_datetime: str
+    end_datetime: str
+
+class UserLogin(BaseModel):
+    email: str
+    password_hash: str
+
 # Root endpoint
 @app.get("/")
 async def root():
@@ -88,6 +96,39 @@ async def get_cars() -> List[Dict[str, Any]]:
     except sqlite3.Error as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
+# POST /api/login - Login user by email and password
+@app.post("/api/login", response_model=UserResponse)
+async def login_user(credentials: UserLogin):
+    """Login user by checking email and password"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute(
+            "SELECT id, full_name, email, password_hash FROM users WHERE email = ?",
+            (credentials.email,)
+        )
+        user = cursor.fetchone()
+        conn.close()
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Simple password check (in production, use proper password hashing)
+        if user['password_hash'] != credentials.password_hash:
+            raise HTTPException(status_code=401, detail="Invalid password")
+        
+        return UserResponse(
+            id=user['id'],
+            full_name=user['full_name'],
+            email=user['email']
+        )
+        
+    except HTTPException:
+        raise
+    except sqlite3.Error as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
 # POST /api/users - Insert data into users table
 @app.post("/api/users", response_model=UserResponse)
 async def create_user(user: UserCreate):
@@ -95,6 +136,13 @@ async def create_user(user: UserCreate):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+        
+        # Check if user already exists
+        cursor.execute("SELECT id FROM users WHERE email = ?", (user.email,))
+        existing = cursor.fetchone()
+        if existing:
+            conn.close()
+            raise HTTPException(status_code=400, detail="User with this email already exists")
         
         cursor.execute(
             "INSERT INTO users (full_name, email, password_hash) VALUES (?, ?, ?)",
@@ -141,6 +189,114 @@ async def create_reservation(reservation: ReservationCreate):
         conn.close()
         
         return ReservationResponse(id=reservation_id)
+        
+    except sqlite3.Error as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+# GET /api/reservations/user/{user_id} - Get all reservations for a specific user
+@app.get("/api/reservations/user/{user_id}")
+async def get_user_reservations(user_id: int) -> List[Dict[str, Any]]:
+    """Get all reservations for a specific user with car details"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT 
+                r.id,
+                r.user_id,
+                r.car_id,
+                r.start_datetime,
+                r.end_datetime,
+                r.status,
+                r.daily_rate_cents,
+                r.created_at,
+                c.make,
+                c.model,
+                c.year,
+                c.color,
+                c.transmission,
+                c.image_url
+            FROM reservations r
+            JOIN cars c ON r.car_id = c.id
+            WHERE r.user_id = ?
+            ORDER BY r.start_datetime DESC
+        """, (user_id,))
+        reservations = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        return reservations
+    except sqlite3.Error as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+# PUT /api/reservations/{reservation_id} - Update a reservation
+@app.put("/api/reservations/{reservation_id}")
+async def update_reservation(reservation_id: int, reservation: ReservationUpdate):
+    """Update a reservation's dates"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Check if reservation exists and is not cancelled or completed
+        cursor.execute("SELECT status FROM reservations WHERE id = ?", (reservation_id,))
+        result = cursor.fetchone()
+        
+        if not result:
+            conn.close()
+            raise HTTPException(status_code=404, detail="Reservation not found")
+        
+        if result['status'] in ['cancelled', 'completed']:
+            conn.close()
+            raise HTTPException(status_code=400, detail=f"Cannot update {result['status']} reservation")
+        
+        # Update the reservation
+        cursor.execute("""
+            UPDATE reservations 
+            SET start_datetime = ?, end_datetime = ?
+            WHERE id = ?
+        """, (reservation.start_datetime, reservation.end_datetime, reservation_id))
+        
+        conn.commit()
+        conn.close()
+        
+        return {"message": "Reservation updated successfully", "id": reservation_id}
+        
+    except sqlite3.Error as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+# DELETE /api/reservations/{reservation_id} - Cancel a reservation
+@app.delete("/api/reservations/{reservation_id}")
+async def cancel_reservation(reservation_id: int):
+    """Cancel a reservation (set status to cancelled)"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Check if reservation exists
+        cursor.execute("SELECT status FROM reservations WHERE id = ?", (reservation_id,))
+        result = cursor.fetchone()
+        
+        if not result:
+            conn.close()
+            raise HTTPException(status_code=404, detail="Reservation not found")
+        
+        if result['status'] == 'cancelled':
+            conn.close()
+            raise HTTPException(status_code=400, detail="Reservation is already cancelled")
+        
+        if result['status'] == 'completed':
+            conn.close()
+            raise HTTPException(status_code=400, detail="Cannot cancel completed reservation")
+        
+        # Update status to cancelled
+        cursor.execute("""
+            UPDATE reservations 
+            SET status = 'cancelled'
+            WHERE id = ?
+        """, (reservation_id,))
+        
+        conn.commit()
+        conn.close()
+        
+        return {"message": "Reservation cancelled successfully", "id": reservation_id}
         
     except sqlite3.Error as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")

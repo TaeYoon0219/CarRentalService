@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './App.css'
+import MyRentals from './MyRentals'
 // import '../assets'
 
 // Types based on the backend API
@@ -26,6 +27,11 @@ interface User {
 
 interface NewUser {
   full_name: string
+  email: string
+  password_hash: string
+}
+
+interface UserLogin {
   email: string
   password_hash: string
 }
@@ -59,6 +65,26 @@ const api = {
     if (!response.ok) throw new Error('Failed to create user')
     return response.json()
   }, */
+  async loginUser(credentials: UserLogin): Promise<User> {
+    const response = await fetch(`${API_BASE_URL}/api/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials),
+    });
+  
+    if (!response.ok) {
+      let msg = `Failed to login (HTTP ${response.status})`;
+      try {
+        const data = await response.json();
+        if (typeof data?.detail === 'string') msg = data.detail;
+        else if (Array.isArray(data?.detail)) msg = data.detail.map((d: any) => d.msg || d.loc?.join('.') ).join('; ');
+        else msg = JSON.stringify(data);
+      } catch {}
+      throw new Error(msg);
+    }
+    return response.json();
+  },
+
   async createUser(user: NewUser): Promise<User> {
     const response = await fetch(`${API_BASE_URL}/api/users`, {
       method: 'POST',
@@ -122,6 +148,8 @@ function App() {
   const [showUserForm, setShowUserForm] = useState(false)
   const [selectedCar, setSelectedCar] = useState<Car | null>(null)
   const [showReservationForm, setShowReservationForm] = useState(false)
+  const [currentPage, setCurrentPage] = useState<'home' | 'rentals'>('home')
+  const [isSignUpMode, setIsSignUpMode] = useState(false)
 
   // Form states
   const [userForm, setUserForm] = useState({
@@ -152,6 +180,22 @@ function App() {
     }
   }
 
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      const user = await api.loginUser({
+        email: userForm.email,
+        password_hash: userForm.password_hash
+      })
+      setCurrentUser(user)
+      setShowUserForm(false)
+      setUserForm({ full_name: '', email: '', password_hash: '' })
+      setIsSignUpMode(false)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to login')
+    }
+  }
+
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
@@ -159,6 +203,7 @@ function App() {
       setCurrentUser(user)
       setShowUserForm(false)
       setUserForm({ full_name: '', email: '', password_hash: '' })
+      setIsSignUpMode(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create user')
     }
@@ -241,7 +286,25 @@ function App() {
   return (
     <div className="app">
       <header className="header">
-        <h1>Halo Car Rental</h1>
+        <div className="header-left">
+          <h1>Halo Car Rental</h1>
+          <nav className="main-nav">
+            <button 
+              onClick={() => setCurrentPage('home')} 
+              className={currentPage === 'home' ? 'nav-btn nav-btn-active' : 'nav-btn'}
+            >
+              Browse Cars
+            </button>
+            {currentUser && (
+              <button 
+                onClick={() => setCurrentPage('rentals')} 
+                className={currentPage === 'rentals' ? 'nav-btn nav-btn-active' : 'nav-btn'}
+              >
+                My Rentals
+              </button>
+            )}
+          </nav>
+        </div>
         {currentUser ? (
           <div className="user-info">
             Welcome, {currentUser.full_name}!
@@ -266,16 +329,18 @@ function App() {
   {showUserForm && (
     <div className="modal">
       <div className="modal-content">
-        <h2>Create Account</h2>
+        <h2>{isSignUpMode ? 'Create Account' : 'Login'}</h2>
 
-        <form onSubmit={handleCreateUser}>
-          <input
-            type="text"
-            placeholder="Full Name"
-            value={userForm.full_name}
-            onChange={(e) => setUserForm({ ...userForm, full_name: e.target.value })}
-            required
-          />
+        <form onSubmit={isSignUpMode ? handleCreateUser : handleLogin}>
+          {isSignUpMode && (
+            <input
+              type="text"
+              placeholder="Full Name"
+              value={userForm.full_name}
+              onChange={(e) => setUserForm({ ...userForm, full_name: e.target.value })}
+              required
+            />
+          )}
 
           <input
             type="email"
@@ -293,9 +358,10 @@ function App() {
             required
           />
 
-          {/* <-- Add THIS button row inside the form */}
           <div className="modal-buttons">
-            <button type="submit" className="btn-primary">Create Account</button>
+            <button type="submit" className="btn-primary">
+              {isSignUpMode ? 'Create Account' : 'Login'}
+            </button>
             <button
               type="button"
               onClick={() => setShowUserForm(false)}
@@ -305,6 +371,25 @@ function App() {
             </button>
           </div>
         </form>
+
+        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+          <button
+            type="button"
+            onClick={() => setIsSignUpMode(!isSignUpMode)}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: '#3182ce', 
+              textDecoration: 'underline', 
+              cursor: 'pointer',
+              fontSize: '0.95rem'
+            }}
+          >
+            {isSignUpMode 
+              ? 'Already have an account? Login' 
+              : "Don't have an account? Sign Up"}
+          </button>
+        </div>
       </div>
     </div>
   )}
@@ -356,6 +441,7 @@ function App() {
       )}
 
     <main className="main">
+      {currentPage === 'home' ? (
         <div className="content-layout">
           <div className="cars-section">
             <div className="cars-header">
@@ -436,6 +522,9 @@ function App() {
             </div>
           </div>
         </div>
+      ) : (
+        <MyRentals currentUser={currentUser} />
+      )}
       </main>
     </div>
   )
