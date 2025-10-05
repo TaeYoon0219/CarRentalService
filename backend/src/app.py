@@ -98,14 +98,47 @@ async def root():
 # GET /api/cars - Retrieve all cars from the database
 @app.get("/api/cars")
 async def get_cars() -> List[Dict[str, Any]]:
-    """Get all cars from the cars table"""
+    """Get all cars from the cars table with their features"""
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM cars")
         cars = [dict(row) for row in cursor.fetchall()]
+        
+        # Get features for each car
+        for car in cars:
+            cursor.execute("""
+                SELECT f.name
+                FROM features f
+                JOIN car_features cf ON f.id = cf.feature_id
+                WHERE cf.car_id = ?
+                ORDER BY f.name
+            """, (car['id'],))
+            features = [row['name'] for row in cursor.fetchall()]
+            car['features'] = features
+        
         conn.close()
         return cars
+    except sqlite3.Error as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+# GET /api/cars/{car_id}/bookings - Get all bookings for a specific car
+@app.get("/api/cars/{car_id}/bookings")
+async def get_car_bookings(car_id: int):
+    """Get all confirmed and pending reservations for a specific car"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, start_datetime, end_datetime, status
+            FROM reservations
+            WHERE car_id = ?
+            AND status IN ('confirmed', 'pending')
+            ORDER BY start_datetime
+        """, (car_id,))
+        bookings = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        return bookings
     except sqlite3.Error as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
@@ -184,6 +217,32 @@ async def create_reservation(reservation: ReservationCreate):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+        
+        # Check if car is available for the requested dates
+        cursor.execute("""
+            SELECT COUNT(*) as conflict_count
+            FROM reservations
+            WHERE car_id = ?
+            AND status IN ('confirmed', 'pending')
+            AND (
+                (start_datetime <= ? AND end_datetime > ?)
+                OR (start_datetime < ? AND end_datetime >= ?)
+                OR (start_datetime >= ? AND end_datetime <= ?)
+            )
+        """, (
+            reservation.car_id,
+            reservation.start_datetime, reservation.start_datetime,
+            reservation.end_datetime, reservation.end_datetime,
+            reservation.start_datetime, reservation.end_datetime
+        ))
+        
+        result = cursor.fetchone()
+        if result['conflict_count'] > 0:
+            conn.close()
+            raise HTTPException(
+                status_code=409, 
+                detail="This car is already reserved for the selected dates. Please choose different dates or another vehicle."
+            )
         
         # Insert reservation with daily_rate_cents from cars table and status 'confirmed'
         cursor.execute("""
@@ -295,7 +354,7 @@ async def update_reservation(reservation_id: int, reservation: ReservationUpdate
         cursor = conn.cursor()
         
         # Check if reservation exists and is not cancelled or completed
-        cursor.execute("SELECT status FROM reservations WHERE id = ?", (reservation_id,))
+        cursor.execute("SELECT status, car_id FROM reservations WHERE id = ?", (reservation_id,))
         result = cursor.fetchone()
         
         if not result:
@@ -305,6 +364,34 @@ async def update_reservation(reservation_id: int, reservation: ReservationUpdate
         if result['status'] in ['cancelled', 'completed']:
             conn.close()
             raise HTTPException(status_code=400, detail=f"Cannot update {result['status']} reservation")
+        
+        # Check if car is available for the new dates (excluding current reservation)
+        cursor.execute("""
+            SELECT COUNT(*) as conflict_count
+            FROM reservations
+            WHERE car_id = ?
+            AND id != ?
+            AND status IN ('confirmed', 'pending')
+            AND (
+                (start_datetime <= ? AND end_datetime > ?)
+                OR (start_datetime < ? AND end_datetime >= ?)
+                OR (start_datetime >= ? AND end_datetime <= ?)
+            )
+        """, (
+            result['car_id'],
+            reservation_id,
+            reservation.start_datetime, reservation.start_datetime,
+            reservation.end_datetime, reservation.end_datetime,
+            reservation.start_datetime, reservation.end_datetime
+        ))
+        
+        conflict_result = cursor.fetchone()
+        if conflict_result['conflict_count'] > 0:
+            conn.close()
+            raise HTTPException(
+                status_code=409, 
+                detail="This car is already reserved for the selected dates. Please choose different dates."
+            )
         
         # Update the reservation
         cursor.execute("""

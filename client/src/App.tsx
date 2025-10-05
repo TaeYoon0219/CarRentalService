@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import './App.css'
 import MyRentals from './MyRentals'
 import Payment from './Payment'
+import PickupInstructions from './PickupInstructions'
+import CarCalendar from './CarCalendar'
 // import '../assets'
 
 // Types based on the backend API
@@ -17,7 +19,8 @@ interface Car {
   color: string
   daily_rate_cents: number
   status: string
-  image_url: string  
+  image_url: string
+  features?: string[]
 }
 
 interface User {
@@ -156,6 +159,16 @@ function App() {
     id: number
     totalAmount: number
   } | null>(null)
+  const [showPickupInstructions, setShowPickupInstructions] = useState(false)
+  const [completedReservation, setCompletedReservation] = useState<{
+    id: number
+    start_datetime: string
+    end_datetime: string
+    make: string
+    model: string
+    year: number
+  } | null>(null)
+  const [sortBy, setSortBy] = useState<string>('name-asc')
 
   // Form states
   const [userForm, setUserForm] = useState({
@@ -290,10 +303,28 @@ function App() {
 
   const handlePaymentSuccess = () => {
     setShowPayment(false)
+    
+    // Store completed reservation info for pickup instructions
+    if (selectedCar && pendingReservation) {
+      setCompletedReservation({
+        id: pendingReservation.id,
+        start_datetime: reservationForm.start_datetime,
+        end_datetime: reservationForm.end_datetime,
+        make: selectedCar.make,
+        model: selectedCar.model,
+        year: selectedCar.year,
+      })
+      setShowPickupInstructions(true)
+    }
+    
     setPendingReservation(null)
     setSelectedCar(null)
     setReservationForm({ start_datetime: '', end_datetime: '' })
-    alert('Payment successful! Your reservation is confirmed.')
+  }
+
+  const handlePickupInstructionsClose = () => {
+    setShowPickupInstructions(false)
+    setCompletedReservation(null)
     setCurrentPage('rentals')
   }
 
@@ -307,6 +338,35 @@ function App() {
 
   const formatPrice = (cents: number) => {
     return `$${(cents / 100).toFixed(2)}`
+  }
+
+  const sortCars = (carsToSort: Car[]) => {
+    const sorted = [...carsToSort]
+    
+    switch (sortBy) {
+      case 'price-asc':
+        return sorted.sort((a, b) => a.daily_rate_cents - b.daily_rate_cents)
+      case 'price-desc':
+        return sorted.sort((a, b) => b.daily_rate_cents - a.daily_rate_cents)
+      case 'year-desc':
+        return sorted.sort((a, b) => b.year - a.year)
+      case 'year-asc':
+        return sorted.sort((a, b) => a.year - b.year)
+      case 'name-asc':
+        return sorted.sort((a, b) => {
+          const nameA = `${a.make} ${a.model}`.toLowerCase()
+          const nameB = `${b.make} ${b.model}`.toLowerCase()
+          return nameA.localeCompare(nameB)
+        })
+      case 'name-desc':
+        return sorted.sort((a, b) => {
+          const nameA = `${a.make} ${a.model}`.toLowerCase()
+          const nameB = `${b.make} ${b.model}`.toLowerCase()
+          return nameB.localeCompare(nameA)
+        })
+      default:
+        return sorted
+    }
   }
 
   if (loading) {
@@ -427,45 +487,65 @@ function App() {
 
       {showReservationForm && selectedCar && (
         <div className="modal">
-          <div className="modal-content">
+          <div className="modal-content reservation-modal">
             <h2>Reserve {selectedCar.make} {selectedCar.model}</h2>
-            <p>Daily Rate: {formatPrice(selectedCar.daily_rate_cents)}</p>
+            <p className="daily-rate">Daily Rate: {formatPrice(selectedCar.daily_rate_cents)}</p>
+            
+            <CarCalendar
+              carId={selectedCar.id}
+              selectedStartDate={reservationForm.start_datetime}
+              selectedEndDate={reservationForm.end_datetime}
+              onDateSelect={(start, end) => {
+                setReservationForm({ start_datetime: start, end_datetime: end })
+              }}
+            />
+
+            {reservationForm.start_datetime && reservationForm.end_datetime && (
+              <div className="selected-dates-summary">
+                <h3>Selected Dates</h3>
+                <p>
+                  <strong>Pickup:</strong> {new Date(reservationForm.start_datetime).toLocaleDateString('en-US', { 
+                    weekday: 'short', 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                  })}
+                </p>
+                <p>
+                  <strong>Return:</strong> {new Date(reservationForm.end_datetime).toLocaleDateString('en-US', { 
+                    weekday: 'short', 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                  })}
+                </p>
+                <p className="total-days">
+                  Total: {Math.ceil((new Date(reservationForm.end_datetime).getTime() - new Date(reservationForm.start_datetime).getTime()) / (1000 * 60 * 60 * 24))} days
+                </p>
+              </div>
+            )}
+
             <form onSubmit={handleCreateReservation}>
-              <label htmlFor="start_dt" className="field-label">Start Date & Time</label>
-                <input
-                  id="start_dt"
-                  type="datetime-local"
-                  placeholder="Start Date & Time"
-                  value={reservationForm.start_datetime}
-                  onChange={(e) =>
-                    setReservationForm({ ...reservationForm, start_datetime: e.target.value })
-                  }
-                required
-              />
-
-              <label htmlFor="end_dt" className="field-label">End Date & Time</label>
-                <input
-                  id="end_dt"
-                    type="datetime-local"
-                    placeholder="End Date & Time"
-                    value={reservationForm.end_datetime}
-                    onChange={(e) =>
-                      setReservationForm({ ...reservationForm, end_datetime: e.target.value })
-                    }
-                required
-              />
-
-            <div className="modal-buttons">
-              <button type="submit" className="btn-primary">Create Reservation</button>
-              <button
-                type="button"
-                onClick={() => setShowReservationForm(false)}
-                className="btn-secondary"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+              <div className="modal-buttons">
+                <button 
+                  type="submit" 
+                  className="btn-primary"
+                  disabled={!reservationForm.start_datetime || !reservationForm.end_datetime}
+                >
+                  Continue to Payment
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowReservationForm(false)
+                    setReservationForm({ start_datetime: '', end_datetime: '' })
+                  }}
+                  className="btn-secondary"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -473,12 +553,46 @@ function App() {
     <main className="main">
       {currentPage === 'home' ? (
         <div className="content-layout">
+          <div className="map-section">
+            <h2>Rental Locations</h2>
+            <div className="map-container">
+              <iframe
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-76.1180%2C43.1080%2C-76.0980%2C43.1280&marker=43.1180%2C-76.1080"
+                style={{ width: '100%', height: '100%', border: 'none', borderRadius: '8px' }}
+                title="Rental Location Map"
+              />
+            </div>
+            <div className="location-info">
+              <h3>Syracuse Hancock International Airport</h3>
+              <p>1000 Col Eileen Collins Blvd</p>
+              <p>Syracuse, NY 13212</p>
+            </div>
+          </div>
+
           <div className="cars-section">
             <div className="cars-header">
               <h2>Available Cars</h2>
-              <button onClick={loadCars} className="btn-secondary">
-                Refresh
-              </button>
+              <div className="cars-header-controls">
+                <div className="sort-control">
+                  <label htmlFor="sort-select">Sort by:</label>
+                  <select 
+                    id="sort-select"
+                    value={sortBy} 
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="sort-select"
+                  >
+                    <option value="name-asc">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                    <option value="price-asc">Price (Low to High)</option>
+                    <option value="price-desc">Price (High to Low)</option>
+                    <option value="year-desc">Year (Newest First)</option>
+                    <option value="year-asc">Year (Oldest First)</option>
+                  </select>
+                </div>
+                <button onClick={loadCars} className="btn-secondary">
+                  Refresh
+                </button>
+              </div>
             </div>
 
             {cars.length === 0 ? (
@@ -487,7 +601,7 @@ function App() {
               </div>
             ) : (
               <div className="cars-list">
-                {cars.filter(car => car.status === 'available').map(car => (
+                {sortCars(cars.filter(car => car.status === 'available')).map(car => (
                   <div key={car.id} className="car-card">
                     <div className="car-image">
                       <img 
@@ -506,8 +620,18 @@ function App() {
                     <div className="car-details">
                       <p><strong>Color:</strong> {car.color || 'Not specified'}</p>
                       <p><strong>Transmission:</strong> {car.transmission}</p>
-                      <p><strong>Seats:</strong> {car.seats}</p>
-                      <p><strong>Doors:</strong> {car.doors}</p>
+                      
+                      <div className="car-features-section">
+                        <p className="features-title"><strong>Features:</strong></p>
+                        <ul className="features-list">
+                          <li>{car.seats} Seats</li>
+                          <li>{car.doors} Doors</li>
+                          {car.features && car.features.map((feature, idx) => (
+                            <li key={idx}>{feature}</li>
+                          ))}
+                        </ul>
+                      </div>
+
                       <div className="car-price">
                         <strong>{formatPrice(car.daily_rate_cents)}/day</strong>
                       </div>
@@ -537,20 +661,6 @@ function App() {
               </div>
             )}
           </div>
-
-          <div className="map-section">
-            <h2>Rental Locations</h2>
-            <div className="map-container">
-              <iframe
-                src="https://www.openstreetmap.org/export/embed.html?bbox=-76.1180%2C43.1080%2C-76.0980%2C43.1280&marker=43.1180%2C-76.1080"
-                style={{ width: '100%', height: '100%', border: 'none', borderRadius: '8px' }}
-                title="Rental Location Map"
-              />
-            </div>
-            <div className="location-info">
-              <h3>Syracuse Hancock International Airport</h3>
-            </div>
-          </div>
         </div>
       ) : (
         <MyRentals currentUser={currentUser} />
@@ -572,6 +682,13 @@ function App() {
           }}
           onPaymentSuccess={handlePaymentSuccess}
           onCancel={handlePaymentCancel}
+        />
+      )}
+
+      {showPickupInstructions && completedReservation && (
+        <PickupInstructions
+          reservation={completedReservation}
+          onClose={handlePickupInstructionsClose}
         />
       )}
     </div>
