@@ -19,7 +19,8 @@ interface Car {
   color: string
   daily_rate_cents: number
   status: string
-  image_url: string  
+  image_url: string
+  features?: string[]
 }
 
 interface User {
@@ -561,6 +562,9 @@ function App() {
                         <ul className="features-list">
                           <li>{car.seats} Seats</li>
                           <li>{car.doors} Doors</li>
+                          {car.features && car.features.map((feature, idx) => (
+                            <li key={idx}>{feature}</li>
+                          ))}
                         </ul>
                       </div>
 

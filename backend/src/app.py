@@ -98,12 +98,25 @@ async def root():
 # GET /api/cars - Retrieve all cars from the database
 @app.get("/api/cars")
 async def get_cars() -> List[Dict[str, Any]]:
-    """Get all cars from the cars table"""
+    """Get all cars from the cars table with their features"""
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM cars")
         cars = [dict(row) for row in cursor.fetchall()]
+        
+        # Get features for each car
+        for car in cars:
+            cursor.execute("""
+                SELECT f.name
+                FROM features f
+                JOIN car_features cf ON f.id = cf.feature_id
+                WHERE cf.car_id = ?
+                ORDER BY f.name
+            """, (car['id'],))
+            features = [row['name'] for row in cursor.fetchall()]
+            car['features'] = features
+        
         conn.close()
         return cars
     except sqlite3.Error as e:
