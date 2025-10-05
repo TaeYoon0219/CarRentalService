@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import './App.css'
 import MyRentals from './MyRentals'
 import Payment from './Payment'
+import PickupInstructions from './PickupInstructions'
 // import '../assets'
 
 // Types based on the backend API
@@ -156,6 +157,15 @@ function App() {
     id: number
     totalAmount: number
   } | null>(null)
+  const [showPickupInstructions, setShowPickupInstructions] = useState(false)
+  const [completedReservation, setCompletedReservation] = useState<{
+    id: number
+    start_datetime: string
+    end_datetime: string
+    make: string
+    model: string
+    year: number
+  } | null>(null)
 
   // Form states
   const [userForm, setUserForm] = useState({
@@ -290,10 +300,28 @@ function App() {
 
   const handlePaymentSuccess = () => {
     setShowPayment(false)
+    
+    // Store completed reservation info for pickup instructions
+    if (selectedCar && pendingReservation) {
+      setCompletedReservation({
+        id: pendingReservation.id,
+        start_datetime: reservationForm.start_datetime,
+        end_datetime: reservationForm.end_datetime,
+        make: selectedCar.make,
+        model: selectedCar.model,
+        year: selectedCar.year,
+      })
+      setShowPickupInstructions(true)
+    }
+    
     setPendingReservation(null)
     setSelectedCar(null)
     setReservationForm({ start_datetime: '', end_datetime: '' })
-    alert('Payment successful! Your reservation is confirmed.')
+  }
+
+  const handlePickupInstructionsClose = () => {
+    setShowPickupInstructions(false)
+    setCompletedReservation(null)
     setCurrentPage('rentals')
   }
 
@@ -572,6 +600,13 @@ function App() {
           }}
           onPaymentSuccess={handlePaymentSuccess}
           onCancel={handlePaymentCancel}
+        />
+      )}
+
+      {showPickupInstructions && completedReservation && (
+        <PickupInstructions
+          reservation={completedReservation}
+          onClose={handlePickupInstructionsClose}
         />
       )}
     </div>

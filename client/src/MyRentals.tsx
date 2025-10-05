@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './MyRentals.css'
+import PickupInstructions from './PickupInstructions'
 
 interface User {
   id: number
@@ -74,6 +75,8 @@ function MyRentals({ currentUser }: MyRentalsProps) {
     start_datetime: '',
     end_datetime: '',
   })
+  const [showPickupInstructions, setShowPickupInstructions] = useState(false)
+  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null)
 
   useEffect(() => {
     if (currentUser) {
@@ -131,6 +134,11 @@ function MyRentals({ currentUser }: MyRentalsProps) {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to cancel reservation')
     }
+  }
+
+  const handleViewPickupInstructions = (reservation: Reservation) => {
+    setSelectedReservation(reservation)
+    setShowPickupInstructions(true)
   }
 
   const formatDate = (dateString: string) => {
@@ -318,6 +326,12 @@ function MyRentals({ currentUser }: MyRentalsProps) {
                         {reservation.status === 'confirmed' && (
                           <>
                             <button
+                              onClick={() => handleViewPickupInstructions(reservation)}
+                              className="btn-pickup"
+                            >
+                              View Pickup Instructions
+                            </button>
+                            <button
                               onClick={() => handleEdit(reservation)}
                               className="btn-secondary"
                             >
@@ -399,6 +413,23 @@ function MyRentals({ currentUser }: MyRentalsProps) {
           </div>
         )}
       </section>
+
+      {showPickupInstructions && selectedReservation && (
+        <PickupInstructions
+          reservation={{
+            id: selectedReservation.id,
+            start_datetime: selectedReservation.start_datetime,
+            end_datetime: selectedReservation.end_datetime,
+            make: selectedReservation.make,
+            model: selectedReservation.model,
+            year: selectedReservation.year,
+          }}
+          onClose={() => {
+            setShowPickupInstructions(false)
+            setSelectedReservation(null)
+          }}
+        />
+      )}
     </div>
   )
 }
