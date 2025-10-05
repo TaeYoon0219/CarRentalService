@@ -130,3 +130,4 @@ pids
 *.pid
 *.seed
 *.pid.lock
+backend/db/carrental.db
